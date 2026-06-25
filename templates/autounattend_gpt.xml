@@ -37,21 +37,23 @@
                 <Disk wcm:action="add">
                     <DiskID>0</DiskID>
                     <WillWipeDisk>true</WillWipeDisk>
+                    <!-- Explicitly set GPT partition style for UEFI -->
+                    <PartitionStyle>GPT</PartitionStyle>
                     
                     <!-- Create GPT partition structure for UEFI systems -->
                     <CreatePartitions>
-                        <!-- EFI System Partition (ESP) -->
+                        <!-- EFI System Partition (ESP) - increased size to avoid 0x800701B1 error -->
                         <CreatePartition wcm:action="add">
                             <Order>1</Order>
                             <Type>EFI</Type>
-                            <Size>100</Size>
+                            <Size>260</Size>
                         </CreatePartition>
                         
                         <!-- Microsoft Reserved Partition (MSR) -->
                         <CreatePartition wcm:action="add">
                             <Order>2</Order>
                             <Type>MSR</Type>
-                            <Size>128</Size>
+                            <Size>16</Size>
                         </CreatePartition>
                         
                         <!-- Windows Partition - Use remaining space -->

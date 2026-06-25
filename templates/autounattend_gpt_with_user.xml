@@ -37,12 +37,11 @@
                 <Disk wcm:action="add">
                     <DiskID>0</DiskID>
                     <WillWipeDisk>true</WillWipeDisk>
-                    <!-- Explicitly set GPT partition style for UEFI -->
-                    <PartitionStyle>GPT</PartitionStyle>
                     
                     <!-- Create GPT partition structure for UEFI systems -->
+                    <!-- Using EFI partition type automatically creates GPT table -->
                     <CreatePartitions>
-                        <!-- EFI System Partition (ESP) - increased size to avoid 0x800701B1 error -->
+                        <!-- EFI System Partition (ESP) -->
                         <CreatePartition wcm:action="add">
                             <Order>1</Order>
                             <Type>EFI</Type>

@@ -74,6 +74,13 @@ if /i "!PARTITION_STYLE!"=="Y" (
     set "PART_TYPE=gpt"
     echo.
     echo Selected: GPT partition style (UEFI)
+    echo.
+    echo IMPORTANT: GPT requires UEFI boot mode!
+    echo - Make sure your BIOS is set to UEFI mode (NOT Legacy/CSM)
+    echo - Disable "CSM" or "Legacy Boot" in BIOS settings
+    echo - If you see error 0x80300024, your BIOS is in Legacy mode
+    echo.
+    pause
 ) else (
     set "PART_TYPE=mbr"
     echo.
@@ -188,14 +195,26 @@ if %ERROR_COUNT% EQU 0 (
     )
     echo.
     echo NEXT STEPS:
-    echo 1. Safely eject the USB drive
-    echo 2. Boot target computer from USB
-    echo 3. Installation will proceed automatically
-    if /i "!CREATE_USER!"=="Y" (
-        echo 4. Computer will auto-login as Admin after install
+    if /i "!PARTITION_STYLE!"=="Y" (
+        echo 1. CRITICAL: Set BIOS to UEFI mode ^(disable Legacy/CSM^)
+        echo 2. Safely eject the USB drive
+        echo 3. Boot target computer from USB in UEFI mode
+        echo 4. Installation will proceed automatically
     ) else (
-        echo 4. You will be prompted to create a user account
-        echo 5. Computer name will need manual entry after install
+        echo 1. Safely eject the USB drive
+        echo 2. Boot target computer from USB
+        echo 3. Installation will proceed automatically
+    )
+    if /i "!CREATE_USER!"=="Y" (
+        echo 5. Computer will auto-login as Admin after install
+    ) else (
+        if /i "!PARTITION_STYLE!"=="Y" (
+            echo 5. You will be prompted to create a user account
+            echo 6. Computer name will need manual entry after install
+        ) else (
+            echo 4. You will be prompted to create a user account
+            echo 5. Computer name will need manual entry after install
+        )
     )
     echo.
 ) else (

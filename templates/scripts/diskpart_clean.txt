@@ -1,0 +1,7 @@
+rem DiskPart Script for Partition Cleanup
+rem This script is called by both autounattend.xml and DiskCleanup.cmd
+rem Performs a fast wipe of all partitions on disk 0
+
+select disk 0
+clean
+exit

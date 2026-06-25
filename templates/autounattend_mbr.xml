@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    
+    <!-- ============================================ -->
+    <!-- WINDOWS PE PASS - Partition and Disk Setup  -->
+    <!-- ============================================ -->
+    <settings pass="windowsPE">
+        
+        <!-- International Settings -->
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+                <UILanguage>en-US</UILanguage>
+            </SetupUILanguage>
+            <InputLocale>en-US</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UserLocale>en-US</UserLocale>
+        </component>
+        
+        <!-- Setup Configuration -->
+        <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            
+            <!-- Accept EULA automatically -->
+            <UserData>
+                <AcceptEula>true</AcceptEula>
+                <FullName>User</FullName>
+                <Organization>Organization</Organization>
+                <!-- Skip product key prompt -->
+                <ProductKey>
+                    <Key></Key>
+                    <WillShowUI>OnError</WillShowUI>
+                </ProductKey>
+            </UserData>
+            
+            <!-- Disk Configuration - CRITICAL FOR PARTITION WIPE -->
+            <DiskConfiguration>
+                <Disk wcm:action="add">
+                    <DiskID>0</DiskID>
+                    <WillWipeDisk>true</WillWipeDisk>
+                    
+                    <!-- Create MBR partition structure for Legacy/BIOS systems -->
+                    <CreatePartitions>
+                        <!-- System Reserved Partition -->
+                        <CreatePartition wcm:action="add">
+                            <Order>1</Order>
+                            <Type>Primary</Type>
+                            <Size>500</Size>
+                        </CreatePartition>
+                        
+                        <!-- Windows Partition - Use remaining space -->
+                        <CreatePartition wcm:action="add">
+                            <Order>2</Order>
+                            <Type>Primary</Type>
+                            <Extend>true</Extend>
+                        </CreatePartition>
+                    </CreatePartitions>
+                    
+                    <!-- Modify and format partitions -->
+                    <ModifyPartitions>
+                        <!-- Format System Reserved partition -->
+                        <ModifyPartition wcm:action="add">
+                            <Order>1</Order>
+                            <PartitionID>1</PartitionID>
+                            <Label>System Reserved</Label>
+                            <Format>NTFS</Format>
+                            <Active>true</Active>
+                        </ModifyPartition>
+                        
+                        <!-- Format Windows partition -->
+                        <ModifyPartition wcm:action="add">
+                            <Order>2</Order>
+                            <PartitionID>2</PartitionID>
+                            <Label>Windows</Label>
+                            <Letter>C</Letter>
+                            <Format>NTFS</Format>
+                        </ModifyPartition>
+                    </ModifyPartitions>
+                </Disk>
+            </DiskConfiguration>
+            
+            <!-- Image to install -->
+            <ImageInstall>
+                <OSImage>
+                    <!-- Auto-select Windows 10 Home edition -->
+                    <InstallFrom>
+                        <MetaData wcm:action="add">
+                            <Key>/IMAGE/NAME</Key>
+                            <Value>Windows 10 Home</Value>
+                        </MetaData>
+                    </InstallFrom>
+                    <InstallTo>
+                        <DiskID>0</DiskID>
+                        <PartitionID>2</PartitionID>
+                    </InstallTo>
+                    <InstallToAvailablePartition>false</InstallToAvailablePartition>
+                </OSImage>
+            </ImageInstall>
+            
+            <!-- Run custom cleanup script as backup -->
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Path>cmd.exe /c "echo Partition cleanup initiated by autounattend.xml"</Path>
+                    <Description>Log partition cleanup start</Description>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+            
+        </component>
+        
+    </settings>
+    
+    <!-- ============================================ -->
+    <!-- SPECIALIZE PASS - System Configuration      -->
+    <!-- ============================================ -->
+    <settings pass="specialize">
+        
+        <!-- Computer name - left blank for manual configuration -->
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <ComputerName>*</ComputerName>
+            <TimeZone>Pacific Standard Time</TimeZone>
+        </component>
+        
+        <!-- Disable Windows Update during installation (offline mode) -->
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Path>reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" /v AUOptions /t REG_DWORD /d 1 /f</Path>
+                    <Description>Disable Windows Update</Description>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+        </component>
+        
+    </settings>
+    
+    <!-- ============================================ -->
+    <!-- OOBE SYSTEM PASS - Out of Box Experience    -->
+    <!-- ============================================ -->
+    <settings pass="oobeSystem">
+        
+        <!-- Shell Setup - Skip OOBE -->
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            
+            <!-- OOBE Configuration - Skip most prompts, but allow user account creation -->
+            <OOBE>
+                <HideEULAPage>true</HideEULAPage>
+                <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+                <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <NetworkLocation>Work</NetworkLocation>
+                <ProtectYourPC>3</ProtectYourPC>
+            </OOBE>
+            
+            <!-- User Accounts - NOT auto-created, user will be prompted -->
+            <!-- UserAccounts section removed to allow manual account creation during OOBE -->
+            
+            <!-- First Logon Commands -->
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <CommandLine>cmd.exe /c echo Installation completed successfully > C:\install_complete.txt</CommandLine>
+                    <Description>Mark installation as complete</Description>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+            
+            <!-- Time Zone -->
+            <TimeZone>Pacific Standard Time</TimeZone>
+            
+        </component>
+        
+        <!-- International Settings -->
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <InputLocale>en-US</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UserLocale>en-US</UserLocale>
+        </component>
+        
+    </settings>
+    
+</unattend>

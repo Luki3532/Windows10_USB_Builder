@@ -117,8 +117,17 @@ echo.
 echo Configuring USB drive %USB_PATH% for hands-free installation...
 echo.
 
+:: Rename the USB drive volume label
+echo [1/4] Renaming USB drive label...
+label %USB_PATH% "Win10AutoUSB" >nul 2>&1
+if errorlevel 1 (
+    echo       WARNING: Could not rename drive label ^(drive may be write-protected^)
+) else (
+    echo       SUCCESS - Drive renamed to "Win10AutoUSB"
+)
+
 :: Copy autounattend.xml to USB root
-echo [1/3] Copying autounattend.xml to USB root...
+echo [2/4] Copying autounattend.xml to USB root...
 copy /Y "%TEMPLATE_DIR%\%XML_TEMPLATE%" "%USB_PATH%\autounattend.xml" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy %XML_TEMPLATE%
@@ -133,7 +142,7 @@ if not exist "%USB_PATH%\scripts" (
 )
 
 :: Copy cleanup scripts
-echo [2/3] Copying cleanup scripts to \scripts folder...
+echo [3/4] Copying cleanup scripts to \scripts folder...
 copy /Y "%TEMPLATE_DIR%\scripts\DiskCleanup.cmd" "%USB_PATH%\scripts\DiskCleanup.cmd" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy DiskCleanup.cmd
@@ -149,7 +158,7 @@ if errorlevel 1 (
 echo       SUCCESS
 
 :: Verify files
-echo [3/3] Verifying configuration...
+echo [4/4] Verifying configuration...
 set "ERROR_COUNT=0"
 
 if not exist "%USB_PATH%\autounattend.xml" (
